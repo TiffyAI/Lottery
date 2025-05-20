@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Buy 10 Lucky Spins</title>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: url('Spin-off.jpg') no-repeat center center fixed;
+      background-size: cover;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #fff;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 40px;
+      text-shadow: 0 0 10px #00f0ff;
+    }
+
+    button {
+      background: linear-gradient(45deg, #00f0ff, #ff00f0);
+      border: none;
+      padding: 18px 40px;
+      border-radius: 15px;
+      color: white;
+      font-size: 22px;
+      cursor: pointer;
+      box-shadow: 0 0 20px #00f0ff, 0 0 30px #ff00f0;
+      animation: pulse 1.5s infinite;
+      transition: transform 0.3s ease;
+    }
+
+    button:hover {
+      transform: scale(1.1);
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 10px #00f0ff, 0 0 20px #ff00f0;
+      }
+      50% {
+        box-shadow: 0 0 30px #00f0ff, 0 0 60px #ff00f0;
+      }
+      100% {
+        box-shadow: 0 0 10px #00f0ff, 0 0 20px #ff00f0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Buy 10 Lucky Spins</h1>
+  <button onclick="sendTiffy()">Buy for 1 TIFFY</button>
+
+  <script>
+    const recipientAddress = '0xed9b43bED20B063ae0966C0AEC446bc755fB84bA';
+    const tokenAddress = '0x6df97Ec32401e23dEDB2E6cAF3035155890DC237';
+
+    const erc20Abi = [
+      {
+        "constant": false,
+        "inputs": [
+          { "name": "_to", "type": "address" },
+          { "name": "_value", "type": "uint256" }
+        ],
+        "name": "transfer",
+        "outputs": [{ "name": "", "type": "bool" }],
+        "type": "function"
+      }
+    ];
+
+    async function sendTiffy() {
+      if (typeof window.ethereum === 'undefined') {
+        alert('Please install MetaMask!');
+        return;
+      }
+
+      const web3 = new Web3(window.ethereum);
+      await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+      const accounts = await web3.eth.getAccounts();
+      const sender = accounts[0];
+      const contract = new web3.eth.Contract(erc20Abi, tokenAddress);
+
+      try {
+        await contract.methods.transfer(recipientAddress, web3.utils.toWei('1', 'ether')).send({ from: sender });
+        alert('1 TIFFY sent successfully! Enjoy your 10 spins!');
+      } catch (err) {
+        console.error(err);
+        alert('Transaction failed or cancelled.');
+      }
+    }
+  </script>
+
+</body>
+</html>
