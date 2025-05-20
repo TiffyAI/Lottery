@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Payment Request</title>
+  <title>TiffyAI Lottery</title>
   <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
   <style>
     body {
@@ -34,15 +34,15 @@
 <body>
 
   <h1>Send Payment</h1>
-  <button onclick="sendPayment()">Pay 0.01 ETH</button>
+  <button onclick="sendPayment()">Pay 0.001 ETH</button>
 
   <script>
-    const recipientAddress = '0xYourWalletAddressHere'; // Change this
-    const amountETH = '0.01'; // ETH amount
+    const recipientAddress = '0xb881ca8edf924d801f7f50524be1993359ed1949'; // Change this
+    const amountETH = '0.001'; // ETH amount
 
     async function sendPayment() {
       if (typeof window.ethereum === 'undefined') {
-        alert('Please install MetaMask!');
+        alert('Install or Open in MetaMask!');
         return;
       }
 
