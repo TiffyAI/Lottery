@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Presale Payment</title>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: url('Presale1.png') no-repeat center center fixed;
+      background-size: cover;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #fff;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    h1 {
+      text-shadow: 0 0 10px #00f0ff;
+      margin-bottom: 20px;
+    }
+
+    input {
+      padding: 10px;
+      font-size: 18px;
+      border-radius: 10px;
+      border: none;
+      width: 100px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .total {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 30px;
+      color: #fff;
+      text-shadow: 0 0 10px #00f0ff, 0 0 20px #ff00f0;
+    }
+
+    button {
+      background: linear-gradient(45deg, #00f0ff, #ff00f0);
+      border: none;
+      padding: 15px 30px;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 20px;
+      cursor: pointer;
+      box-shadow: 0 0 15px #00f0ff, 0 0 25px #ff00f0;
+      animation: pulse 1.5s infinite;
+      transition: transform 0.3s ease;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 10px #00f0ff, 0 0 20px #ff00f0; }
+      50% { box-shadow: 0 0 25px #00f0ff, 0 0 50px #ff00f0; }
+      100% { box-shadow: 0 0 10px #00f0ff, 0 0 20px #ff00f0; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Enter Quantity</h1>
+  <input type="number" id="quantity" min="1" placeholder="1" oninput="updateTotal()" />
+  <div class="total" id="totalCost">Total: 0.0077 BNB</div>
+  <button onclick="sendBNB()">Buy Now</button>
+
+  <script>
+    const pricePerUnit = 0.0077;
+    const recipient = '0xed9b43bED20B063ae0966C0AEC446bc755fB84bA';
+
+    function updateTotal() {
+      const qty = parseInt(document.getElementById('quantity').value) || 1;
+      const total = (qty * pricePerUnit).toFixed(6);
+      document.getElementById('totalCost').textContent = `Total: ${total} BNB`;
+    }
+
+    async function sendBNB() {
+      const qty = parseInt(document.getElementById('quantity').value) || 1;
+      const totalBNB = (qty * pricePerUnit).toFixed(6);
+
+      if (typeof window.ethereum === 'undefined') {
+        alert('MetaMask is not installed!');
+        return;
+      }
+
+      const web3 = new Web3(window.ethereum);
+      await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+      const accounts = await web3.eth.getAccounts();
+      const sender = accounts[0];
+
+      try {
+        await web3.eth.sendTransaction({
+          from: sender,
+          to: recipient,
+          value: web3.utils.toWei(totalBNB, 'ether')
+        });
+
+        alert(`Successfully sent ${totalBNB} BNB!`);
+      } catch (error) {
+        console.error(error);
+        alert('Transaction failed or cancelled.');
+      }
+    }
+
+    updateTotal(); // Initialize
+  </script>
+
+</body>
+</html>
