@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Payment Request</title>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+  <style>
+    body {
+      background: #0e0e0e;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: sans-serif;
+    }
+    button {
+      background: linear-gradient(135deg, #00f0ff, #0080ff);
+      border: none;
+      padding: 15px 30px;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 18px;
+      cursor: pointer;
+      box-shadow: 0 0 10px #00f0ff;
+      transition: 0.3s;
+    }
+    button:hover {
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Send Payment</h1>
+  <button onclick="sendPayment()">Pay 0.01 ETH</button>
+
+  <script>
+    const recipientAddress = '0xYourWalletAddressHere'; // Change this
+    const amountETH = '0.01'; // ETH amount
+
+    async function sendPayment() {
+      if (typeof window.ethereum === 'undefined') {
+        alert('Please install MetaMask!');
+        return;
+      }
+
+      const web3 = new Web3(window.ethereum);
+      await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+      const accounts = await web3.eth.getAccounts();
+      const sender = accounts[0];
+
+      try {
+        await web3.eth.sendTransaction({
+          from: sender,
+          to: recipientAddress,
+          value: web3.utils.toWei(amountETH, 'ether'),
+        });
+
+        alert('Payment sent successfully!');
+      } catch (error) {
+        alert('Transaction failed or canceled.');
+        console.error(error);
+      }
+    }
+  </script>
+
+</body>
+</html>
