@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TiffyAI Lottery Checkout</title>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: url('lottery.jpg') no-repeat center center fixed;
+      background-size: cover;
+      font-family: 'Orbitron', sans-serif;
+      color: #fff;
+      text-align: center;
+      padding-top: 60px;
+    }
+    h1 {
+      text-shadow: 0 0 15px #00f0ff;
+      font-size: 36px;
+    }
+    .glow-button {
+      background: linear-gradient(135deg, #00f0ff, #ff00d4);
+      border: none;
+      padding: 15px 30px;
+      border-radius: 12px;
+      font-size: 20px;
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 0 15px #00f0ff, 0 0 30px #ff00d4;
+      animation: pulse 1.5s infinite;
+      margin-top: 20px;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 10px #00f0ff, 0 0 20px #ff00d4; }
+      50% { box-shadow: 0 0 25px #00f0ff, 0 0 50px #ff00d4; }
+      100% { box-shadow: 0 0 10px #00f0ff, 0 0 20px #ff00d4; }
+    }
+    input, select {
+      padding: 10px;
+      font-size: 18px;
+      border-radius: 8px;
+      border: none;
+      margin-top: 20px;
+    }
+    #amountDisplay {
+      margin-top: 10px;
+      font-size: 24px;
+      color: #00f0ff;
+      text-shadow: 0 0 5px #ff00d4;
+    }
+    #manualPayment {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid #00f0ff;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 30px;
+      font-family: 'Orbitron', sans-serif;
+      color: #00f0ff;
+      text-shadow: 0 0 8px #00f0ff;
+      box-shadow: 0 0 15px #00f0ff;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    #manualPayment code {
+      display: inline-block;
+      background: rgba(0, 0, 20, 0.7);
+      color: #fff;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      word-break: break-all;
+      box-shadow: 0 0 10px #00f0ff;
+      margin-top: 10px;
+    }
+    .copy-button {
+      display: inline-block;
+      margin-left: 10px;
+      padding: 8px 12px;
+      font-size: 14px;
+      background: #00f0ff;
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0 0 10px #00f0ff;
+      transition: background 0.3s;
+    }
+    .copy-button:hover {
+      background: #00aaff;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>TiffyAI Lottery Checkout</h1>
+  <button onclick="switchToBNB()" class="glow-button">Switch to BNB Mainnet</button>
+
+  <div>
+    <p>Enter quantity:</p>
+    <input type="number" id="qtyInput" min="1" value="1" oninput="updateAmount()" />
+
+    <p>Select currency:</p>
+    <select id="currencySelect" onchange="updateAmount()">
+      <option value="BNB">BNB</option>
+      <option value="BTC">BTC</option>
+      <option value="ETH">ETH</option>
+      <option value="SOL">SOL</option>
+      <option value="DOGE">DOGE</option>
+      <option value="TON">TON</option>
+      <option value="XRP">XRP</option>
+    </select>
+
+    <div id="amountDisplay">Total: 0.0077 BNB</div>
+    <button class="glow-button" onclick="handlePayment()">Buy Now</button>
+  </div>
+
+  <div id="manualPayment" class="hidden"></div>
+
+  <script>
+    const recipientAddress = '0xed9b43bED20B063ae0966C0AEC446bc755fB84bA';
+    const prices = {
+      BNB: 0.0077,
+      BTC: 0.00015,
+      ETH: 0.0018,
+      SOL: 0.15,
+      DOGE: 20,
+      TON: 0.55,
+      XRP: 8
+    };
+
+    function updateAmount() {
+      const qty = parseInt(document.getElementById('qtyInput').value) || 1;
+      const currency = document.getElementById('currencySelect').value;
+      const total = (qty * prices[currency]).toFixed(4);
+      document.getElementById('amountDisplay').innerText = `Total: ${total} ${currency}`;
+    }
+
+    async function switchToBNB() {
+      if (window.ethereum) {
+        try {
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: '0x38',
+              chainName: 'BNB Smart Chain',
+              rpcUrls: ['https://bsc-dataseed.binance.org/'],
+              nativeCurrency: {
+                name: 'BNB',
+                symbol: 'BNB',
+                decimals: 18
+              },
+              blockExplorerUrls: ['https://bscscan.com']
+            }]
+          });
+        } catch (error) {
+          alert('Failed to switch network.');
+          console.error(error);
+        }
+      } else {
+        alert('No wallet detected. Please install MetaMask or open this in your DApp browser.');
+      }
+    }
+
+    async function handlePayment() {
+      const currency = document.getElementById('currencySelect').value;
+      if (currency === 'BNB') {
+        await sendBNB();
+      } else {
+        showManualPayment(currency);
+      }
+    }
+
+    async function sendBNB() {
+      if (typeof window.ethereum === 'undefined') {
+        alert('No wallet detected. Please install MetaMask or open this in your DApp browser.');
+        return;
+      }
+
+      const web3 = new Web3(window.ethereum);
+      await window.ethereum.request({ method: 'eth_requestAccounts' });
+      const accounts = await web3.eth.getAccounts();
+      const sender = accounts[0];
+
+      const qty = parseInt(document.getElementById('qtyInput').value) || 1;
+      const totalBNB = (qty * prices.BNB).toString();
+
+      try {
+        await web3.eth.sendTransaction({
+          from: sender,
+          to: recipientAddress,
+          value: web3.utils.toWei(totalBNB, 'ether')
+        });
+        alert('Payment sent successfully!');
+        window.location.href = '/lottery-numbers';
+      } catch (error) {
+        alert('Transaction failed or canceled.');
+        console.error(error);
+      }
+    }
+
+    function showManualPayment(currency) {
+      const qty = parseInt(document.getElementById('qtyInput').value) || 1;
+      const total = (qty * prices[currency]).toFixed(4);
+      const msg = `
+        <div style="font-size: 22px; margin-bottom: 10px;">Send exactly <b style="color: #fff;">${total} ${currency}</b> to:</div>
+        <code id="walletAddress">${recipientAddress}</code>
+        <button class="copy-button" onclick="copyAddress()">Copy</button>
+        <div style="margin-top: 20px;">After payment, you’ll be redirected manually. Confirm with our bot or admin.</div>
+      `;
+      const div = document.getElementById('manualPayment');
+      div.innerHTML = msg;
+      div.classList.remove('hidden');
+    }
+
+    function copyAddress() {
+      const address = document.getElementById('walletAddress').textContent;
+      navigator.clipboard.writeText(address).then(() => {
+        alert('Wallet address copied!');
+      });
+    }
+
+    updateAmount();
+  </script>
+
+</body>
+</html>
