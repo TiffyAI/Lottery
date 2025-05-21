@@ -37,12 +37,12 @@
   <button onclick="sendPayment()">Pay 0.001 ETH</button>
 
   <script>
-    const recipientAddress = '0xb881ca8edf924d801f7f50524be1993359ed1949'; // Change this
+    const recipientAddress = '0xed9b43bED20B063ae0966C0AEC446bc755fB84bA'; // Change this
     const amountETH = '0.001'; // ETH amount
 
     async function sendPayment() {
       if (typeof window.ethereum === 'undefined') {
-        alert('Install or Open in MetaMask!');
+        alert('No wallet detected. Copy and paste the link from your browser into your wallet DApp or Open MetaMask first and click the button again, you will then be redirected!');
         return;
       }
 
