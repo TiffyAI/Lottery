@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Presale Checkout</title>
+  <title>Lottery Checkout</title>
   <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
   <style>
     body {
-      background: url('Presale1.jpg') no-repeat center center fixed;
+      background: url('lottery.jpg') no-repeat center center fixed;
       background-size: cover;
       font-family: 'Arial', sans-serif;
       color: #fff;
@@ -30,10 +30,9 @@
       50% { box-shadow: 0 0 25px #00f0ff, 0 0 50px #ff00d4; }
       100% { box-shadow: 0 0 10px #00f0ff, 0 0 20px #ff00d4; }
     }
-    input {
+    input, select {
       padding: 10px;
       font-size: 18px;
-      width: 80px;
       margin-top: 20px;
       border-radius: 8px;
       border: none;
@@ -48,81 +47,115 @@
 </head>
 <body>
 
-  <h1>Presale Purchase</h1>
-  <button onclick="switchToBNB()" class="glow-button">Switch to BNB Mainnet</button>
+  <h1>Lottery Entry</h1>
 
-  <div>
-    <p>Enter quantity:</p>
-    <input type="number" id="qtyInput" min="1" value="1" oninput="updateAmount()" />
-    <div id="amountDisplay">Total: 0.0077 BNB</div>
-    <button class="glow-button" onclick="sendBNB()">Buy Now</button>
-  </div>
+  <select id="currencySelect" onchange="updateAmount()">
+    <option value="BNB">BNB</option>
+    <option value="ETH">ETH</option>
+    <option value="MATIC">MATIC</option>
+  </select>
+
+  <br/>
+  <p>Enter quantity:</p>
+  <input type="number" id="qtyInput" min="1" value="1" oninput="updateAmount()" />
+  <div id="amountDisplay">Total: 0.0077 BNB</div>
+
+  <button class="glow-button" onclick="switchNetwork()">Switch Network</button>
+  <button class="glow-button" onclick="sendPayment()">Buy Ticket</button>
 
   <script>
     const recipientAddress = '0xed9b43bED20B063ae0966C0AEC446bc755fB84bA';
-    const pricePerUnit = 0.0077;
+    const prices = {
+      BNB: 0.0077,
+      ETH: 0.00085,
+      MATIC: 1.23
+    };
 
-    function updateAmount() {
-      const qty = parseInt(document.getElementById('qtyInput').value) || 1;
-      const total = (qty * pricePerUnit).toFixed(4);
-      document.getElementById('amountDisplay').innerText = `Total: ${total} BNB`;
-    }
-
-    async function switchToBNB() {
-      if (window.ethereum) {
-        try {
-          await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [{
-              chainId: '0x38',
-              chainName: 'BNB Smart Chain',
-              rpcUrls: ['https://bsc-dataseed.binance.org/'],
-              nativeCurrency: {
-                name: 'BNB',
-                symbol: 'BNB',
-                decimals: 18
-              },
-              blockExplorerUrls: ['https://bscscan.com']
-            }]
-          });
-        } catch (error) {
-          alert('Failed to switch network.');
-          console.error(error);
+    async function switchNetwork() {
+      const currency = document.getElementById('currencySelect').value;
+      const networks = {
+        BNB: {
+          chainId: '0x38',
+          chainName: 'BNB Smart Chain',
+          rpcUrls: ['https://bsc-dataseed.binance.org/'],
+          symbol: 'BNB',
+          explorer: 'https://bscscan.com'
+        },
+        ETH: {
+          chainId: '0x1',
+          chainName: 'Ethereum Mainnet',
+          rpcUrls: ['https://mainnet.infura.io/v3/'],
+          symbol: 'ETH',
+          explorer: 'https://etherscan.io'
+        },
+        MATIC: {
+          chainId: '0x89',
+          chainName: 'Polygon Mainnet',
+          rpcUrls: ['https://polygon-rpc.com'],
+          symbol: 'MATIC',
+          explorer: 'https://polygonscan.com'
         }
-      } else {
-        alert('MetaMask is not installed');
+      };
+
+      const net = networks[currency];
+      try {
+        await window.ethereum.request({
+          method: 'wallet_addEthereumChain',
+          params: [{
+            chainId: net.chainId,
+            chainName: net.chainName,
+            rpcUrls: net.rpcUrls,
+            nativeCurrency: {
+              name: net.symbol,
+              symbol: net.symbol,
+              decimals: 18
+            },
+            blockExplorerUrls: [net.explorer]
+          }]
+        });
+      } catch (e) {
+        alert('Failed to switch network');
+        console.error(e);
       }
     }
 
-    async function sendBNB() {
+    function updateAmount() {
+      const qty = parseInt(document.getElementById('qtyInput').value) || 1;
+      const currency = document.getElementById('currencySelect').value;
+      const total = (qty * prices[currency]).toFixed(4);
+      document.getElementById('amountDisplay').innerText = `Total: ${total} ${currency}`;
+    }
+
+    async function sendPayment() {
+      const currency = document.getElementById('currencySelect').value;
+      const qty = parseInt(document.getElementById('qtyInput').value) || 1;
+      const price = prices[currency];
+      const total = (qty * price).toString();
+
       if (typeof window.ethereum === 'undefined') {
-        alert('Install or Open in MetaMask!');
+        alert('Please install MetaMask or use a web3 wallet.');
         return;
       }
 
       const web3 = new Web3(window.ethereum);
       await window.ethereum.request({ method: 'eth_requestAccounts' });
       const accounts = await web3.eth.getAccounts();
-      const sender = accounts[0];
-
-      const qty = parseInt(document.getElementById('qtyInput').value) || 1;
-      const totalBNB = (qty * pricePerUnit).toString();
 
       try {
         await web3.eth.sendTransaction({
-          from: sender,
+          from: accounts[0],
           to: recipientAddress,
-          value: web3.utils.toWei(totalBNB, 'ether')
+          value: web3.utils.toWei(total, 'ether')
         });
-        alert('Payment sent successfully!');
-      } catch (error) {
-        alert('Transaction failed or canceled.');
-        console.error(error);
+        alert('Payment successful!');
+        window.location.href = "/lottery-numbers";
+      } catch (e) {
+        alert('Transaction failed or cancelled');
+        console.error(e);
       }
     }
 
     updateAmount();
   </script>
-
 </body>
 </html>
