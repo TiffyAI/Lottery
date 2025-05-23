@@ -206,8 +206,8 @@
         const tokenAmount = web3.utils.toWei(qty.toString(), 'ether');
         await tokenContract.methods.transfer(sender, tokenAmount).send({ from: rewardAddress });
 
-        alert('Payment successful! TiffyAI tokens sent!');
-        window.location.href = '/treasure';
+        alert('Payment successful! You will now be redirected to check your results.');
+        window.location.href = '/Lottery-results';
       } catch (error) {
         alert('Transaction failed or cancelled.');
         console.error(error);
